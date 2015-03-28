@@ -30,7 +30,11 @@ Dustin Johnson - 11338118}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Outline}
-Monte Carlo Markov Chain (MCMC) based methods the standard method of sampling from probability distributions with no closed form solutions. The abundance of efficient and easy to use implementations in popular software such as JAGS, BUGS, Stan, etc. have allowed for their widespread adoption. However, MCMC typically requires large numbers of samples to cover the space of  
+
+Markov Chain Monte Carlo (MCMC) has become the standard sampling tools that have enabled Bayesian statistics to evolve and be applied to increasingly complex and higher dimensional models. Probabilistic programming languages such as JAGS, BUGS, and Stan have readily integrated MCMC into a "black-box" declarative structure, making Bayesian model construction more simplistic. However, increasing distribution complexity and dimensionality has placed higher demands for improvements in sampling methods in terms of performance and computational efficiency. 
+	
+Sequential Monte Carlo (SMC) samplers offer an alternative to MCMC by offering the ability to sample from a posterior distribution through a novel online algorithm, as opposed to sampling from the entire joint distribution each time new observations enters the model. Therefore, SMC improves computational speed and adaptability of the posterior estimate with new data. The downside of this approach is the possible difficulty of constructing the Markov transition probabilities to conform to the desired distribution.
+
 
 SMC samplers offer the promise of better performance in .... situations, with the added difficulty of having to come up with transitions from simple to desired distribitions.
 
