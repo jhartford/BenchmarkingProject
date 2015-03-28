@@ -29,11 +29,11 @@ Dustin Johnson - 11338118}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Outline}
+%\section{Outline}
 
 Markov Chain Monte Carlo (MCMC) has become the standard sampling tool that has enabled Bayesian statistics to evolve and be applied to complex and high dimensional models. Probabilistic programming languages such as JAGS, BUGS, and Stan have readily integrated MCMC into a ``black-box" declarative structure, making Bayesian model. However, MCMC often requires a large number of samples to explore the space of possible outcomes sufficiently to provide representative samples, and the algorithm may get ``stuck" in modes of high probability.
 
-Sequential Monte Carlo (SMC) samplers offer a more computationally efficient alternative to MCMC using an approach which shifts samples from a tractable starting distribution, $\pi_1$, to the intractable distribution of interest, $\pi_n$, via a series of intermediate distributions. The downside of this approach is that it requires the practitioner to not only consider the distribution of interest, $\pi_n$, but also the preceding sequence of distributions $\pi_{1:n}$. This tradeoff between ease of use for practitioners and computational efficiency naturally leads to the questions of how much benefit  SMC samplers provide over MCMC samplers?
+Sequential Monte Carlo (SMC) \cite{DelMoral2005} samplers offer a more computationally efficient alternative to MCMC using an approach which shifts samples from a tractable starting distribution, $\pi_1$, to the intractable distribution of interest, $\pi_n$, via a series of intermediate distributions. The downside of this approach is that it requires the practitioner to not only consider the distribution of interest, $\pi_n$, but also the preceding sequence of distributions $\pi_{1:n}$. This tradeoff between ease of use for practitioners and computational efficiency naturally leads to the questions of how much benefit  SMC samplers provide over MCMC samplers?
 
 To test this we plan to benchmark the performance of MCMC against SMC samplers in fitting typical Bayesian models. We plan to test hierarchical and mixture models, as well as clustering using non-parametric models. 
 
@@ -45,6 +45,10 @@ In order to standardise performance across programming languages, we will implem
 % MCMC - Metro Hasting
 % MCMC - Gibbs
 % 
-
+\nocite{Bishop2007}
+\nocite{Murphy2012}
+\nocite{Lindsten2014}
+\bibliographystyle{unsrt}
+\bibliography{refs}
 
 \end{document}  
