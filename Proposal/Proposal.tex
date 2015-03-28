@@ -1,0 +1,45 @@
+\documentclass[11pt, oneside]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{epstopdf}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage[]{mcode}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\prox}{prox}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\diag}{diag}
+\DeclareMathOperator*{\Lap}{Lap}
+\DeclareMathOperator*{\E}{E}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{STAT 520 - Project Proposal}
+\author{Jason Hartford - 81307143}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Outline}
+MCMC is the standard method of sampling from distributions with high dim stuff...  used in JAGS, BUGS, Stan, etc.
+
+SMC samplers offer the promise of better performance in .... situations, with the added difficulty of having to come up with transitions from simple to desired distribitions.
+
+But... relatively little is know about their relative performance. Given the added cost to practitioners of coming up with transition blah blah blah, the natural question to ask is how much ``performance" can be gained by using SMC samplers.
+
+To test this we will consider the performance of MCMC using Metro Hastings and Gibbs sampling, and SMC samplers in these popular contexts: bayesian non-parametric, directlet process, gaussian process, mixture models, and hierarchical models.
+
+% MCMC - Metro Hasting
+% MCMC - Gibbss
+% 
+
+
+\end{document}  
