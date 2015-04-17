@@ -1,9 +1,9 @@
 using Distributions: Normal, Multinomial, Binomial, MvNormal
 # Useful functions
-ess(w) = 1/sum(w.^2)
+ess(w) = 1/sum(exp(2*w))
 phi(n, p) = n/p
 
-function resample_idx(p:: Array{Float64}, idx::Array{Int16})
+function resample_idx(p:: Array{Float64}, idx::Array{Int32})
   # Fairly fast function for doing resampling
   n = length(p);
   y = rand(Multinomial(n, p));
@@ -26,32 +26,45 @@ function reset_weights!(X::Array{Float64}, value::Float64, idx::Int64)
   end
 end
 
-γ = 0.5 #ESS threshold
-N = 1000 #number of particles
-p = 100 # Annealing steps π_n(x) ∝ [π(x)]^ϕ_n [μ_1(x)]^(1-ϕ_n)   0 ≤ ϕ_1 ≤ ... ≤ ϕ_p = 1
-q = Normal(0, 1) # Proposal Distribution
-xs = zeros(Float64, p, N) # particles
-w = zeros(Float64, p, N) # weights
-essi = zeros(Float64, p) # ESS values
+function normalise(x::Array)
+  m = maximum(x);
+  z = sum(exp(x - m));
+  return log(exp(x - m)./z);
+end
 
-# SMC Algorithm
-# INITIALIZATION
-n = 1;
-# sample particles initial distribution
-xs[n, :] = rand(q,N);
-# compute log weights for numerical stability
-lw[n, :] = log(q) - lop(p);
-idx = zeros(Int16, N);
-while true
-  # RESAMPLING
-  essi[n]=ess(w[n,:]);
-  if essi[n] < N*γ # Gamma is set above to 0.5 by default
-    idx = resample_idx(w, idx);
-    xs[n, :] = xs[n, idx];
-    reset_weights!(w, 1/N, n);
+function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
+  # γ = ESS threshold
+  # N = number of particles
+  # p = Annealing steps π_n(x) ∝ [π(x)]^ϕ_n [μ_1(x)]^(1-ϕ_n)   0 ≤ ϕ_1 ≤ ... ≤ ϕ_p = 1
+  # δ : N*δ = T, the threshold at which we resample the particles
+
+  q = Normal(0, σ); # Proposal Distribution
+  xs = zeros(Float64, p, N); # particles
+  lw = zeros(Float64, p, N); # weights
+  essi = zeros(Float64, p); # ESS values
+  # SMC Algorithm
+  # INITIALIZATION
+  n = 1;
+  # sample particles initial distribution
+  xs[n, :] = rand(q,N);
+  lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
+  lw[n, :] = normalise(lw[n, :]);
+  idx = zeros(Int32, N);
+  while true
+    # RESAMPLING
+    essi[n]=ess(lw[n,:]);
+    if essi[n] < N*δ
+      idx = resample_idx(reshape(exp(lw[n, :]),N), idx);
+      xs[n, :] = xs[n, idx];
+      reset_weights!(lw, log(1/N), n);
+    end
+    n = n + 1;
+    if n == p+1
+      break;
+    end
+    xs[n, :] = xs[n - 1, :] + reshape(rand(q,N), 1, N);
+    lw[n, :] = lw[n-1] + log(γ(xs[n, :], 1.0*n/p)) - log(pdf(q, xs[n, :] - xs[n-1, :]));
+    lw[n, :] = normalise(lw[n, :]);
   end
-  n = n + 1;
-  if n == p+1
-    break;
-  end
+  return xs, lw, essi;
 end
