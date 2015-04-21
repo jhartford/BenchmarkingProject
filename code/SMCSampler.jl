@@ -1,7 +1,7 @@
 using Distributions: Normal, Multinomial, Binomial, MvNormal
 # Useful functions
-ess(w) = 1/sum(exp(2*w))
-phi(n, p) = n/p
+ess(w) = 1/sum(exp(2*w));
+phi(n, p) = n/p;
 
 function resample_idx(p:: Array{Float64}, idx::Array{Int32})
   # Fairly fast function for doing resampling
@@ -32,6 +32,13 @@ function normalise(x::Array)
   return log(exp(x - m)./z);
 end
 
+function weight_update!(X::Array{Float64}, value::Float64, idx::Int64)
+  # Resets the weights in a row of a matrix to the value given in value. Operates in place
+  for i = 1:length(X[idx,:])
+    X[idx, i] = value
+  end
+end
+
 function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
   # γ = ESS threshold
   # N = number of particles
@@ -46,9 +53,10 @@ function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
   # INITIALIZATION
   n = 1;
   # sample particles initial distribution
-  xs[n, :] = rand(q,N);
-  lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
-  lw[n, :] = normalise(lw[n, :]);
+  xs[n, :] = rand(q, N);
+  #@time lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
+  @time lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
+  @time lw[n, :] = normalise(lw[n, :]);
   idx = zeros(Int32, N);
   while true
     # RESAMPLING
