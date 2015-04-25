@@ -59,13 +59,34 @@ If the proposal candidate is rejected, then the next sampled value is taken to b
 \section*{Sequential Monte Carlo (SMC) Samplers}
 The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to an alternative sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well suited for Bayesian analysis. \\
 
-To construct an SMC sampler, we design a sequence of annealed auxiliary distributions from a proposal that is easy to simulate from, which will transition to the posterior of interest. In order to accomplish this, we propagate a cloud of $N_p$ weighted random particles that approximate the distribution through a combination of importance sampling and a backward Markov kernel $K(x_{n-1}, x_n)$.
+SMC samplers can be considered as an adaptation to Sequential Importance Sampling (SIS). A major limitation of the SIS approach is that the importance distribution $\eta_n(x_n)$ is not tractable and in most cases impossible to compute, as it requires integration of the joint $x_{1:n-1}$. To mitigate this issue,  we essentially perform importance sampling on extended space $E^n$ by introducing a sequence of extended probability distributions $\tilde{\pi}_n$ through the use of artificial backward Markov kernels $L_k(x_{k+1},x_k)$ as follows:
 
+\[
+\tilde{\pi}_n(x_{1:n}) = \frac{\tilde{\gamma}_n(x_{1:n})}{Z_n}
+\]
 
+where 
 
+\[
+\tilde{\gamma}_n(x_{1:n}) = \gamma_n(x_n) \prod_{k=1}^{n-1} L_k(x_{k+1},x_k)
+\]
+
+We are now able to use Importance Sampling (IS) without having to compute the importance distribution $\eta_n(x_n)$, and hence perform IS between the joint importance distribution $\eta_n(x_{1:n})$ and artificial joint target distribution $\tilde{\pi}_n$. Provided we have a set of weighted particles $\{W_{n-1}^{(i)}, X_{1:n-1}^{(i)}\}_{i=1}^N$ approximating $\tilde{\pi}_{n-1}$,
+
+\[
+W_n^{(i)} \propto \frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})} \propto w_n(x_{n-1}^{(i)}, x_n^{(i)})W_{n-1}^{(i)} \quad (3)
+\]
+
+where the incremental weights are computed as
+
+\[
+w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}^{(i)})}{\gamma_{n-1}(x_{n-1}^{(i)}) K_n(x_{n-1}^{(i)}, x_n^{(i)})}
+\]
+
+$K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (3) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold.
 
 \section*{Convergence Benchmarks}
-As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it gets stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
+As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
 
 
 
