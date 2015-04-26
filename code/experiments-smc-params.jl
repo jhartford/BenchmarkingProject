@@ -78,7 +78,8 @@ true_values = [e_x; e_x2];
 println("Started Experiments")
 n = int(1e6); #number of samples
 g(x) = x.^2; f(x) = x; function_list = [f, g];
-n_experiments = 1;
+n_experiments = 50;
+d = 5;
 
 # get smc samples
 println("Getting σ = 5")
@@ -143,7 +144,6 @@ smc_plt_10 = plt.plot(smc_time_10, smc_er_mean_10[:,1], color = cols[5]);
 smc_plt_15 = plt.plot(smc_time_15, smc_er_mean_15[:,1], color = cols[15]);
 smc_plt_20 = plt.plot(smc_time_20, smc_er_mean_20[:,1], color = cols[20]);
 smc_plt_30 = plt.plot(smc_time_30, smc_er_mean_30[:,1], color = cols[4]);
-plt.xlim(0,20.5)
 #mcmc_plt = plt.plot(1:n, mcmc_er_mean[:,1], color = cols[4]);
 plt.title(L"Mean absolute error of $E[x]$", family = "serif");
 plt.ylabel("Mean error", family = "serif");
@@ -214,7 +214,6 @@ smc_plt_d3 = plt.plot(smc_time_d3, smc_er_mean_d3[:,1], color = cols[7]);
 smc_plt_d5 = plt.plot(smc_time_d5, smc_er_mean_d5[:,1], color = cols[6]);
 smc_plt_d8 = plt.plot(smc_time_d8, smc_er_mean_d8[:,1], color = cols[13]);
 smc_plt_d10 = plt.plot(smc_time_d10, smc_er_mean_d10[:,1], color = cols[19]);
-plt.xlim(0,20.5)
 #mcmc_plt = plt.plot(1:n, mcmc_er_mean[:,1], color = cols[4]);
 plt.title(L"Mean absolute error of $E[x]$", family = "serif");
 plt.ylabel("Mean error", family = "serif");
