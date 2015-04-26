@@ -89,13 +89,40 @@ $K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common i
 As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
 
 
+\section*{Results}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/E_X.png}
+\caption{default}
+\label{default}
+\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/E_X2.png}
+\caption{default}
+\label{default}
+\end{center}
+\end{figure}
 
 
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/iterations.pdf}
+\caption{default}
+\label{default}
+\end{center}
+\end{figure}
 
-
-
-
-
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/iterationsEx2.pdf}
+\caption{default}
+\label{default}
+\end{center}
+\end{figure}
 
 
 

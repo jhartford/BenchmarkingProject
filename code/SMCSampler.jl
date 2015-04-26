@@ -27,9 +27,9 @@ function reset_weights!(X::Array{Float64}, value::Float64, idx::Int64)
 end
 
 function normalise(x::Array)
-  m = maximum(x);
-  z = sum(exp(x - m));
-  return log(exp(x - m)./z);
+  mx = maximum(x);
+  z = sum(exp(x .- mx));
+  return log(exp(x .- mx)./z);
 end
 
 function weight_update!(X::Array{Float64}, value::Float64, idx::Int64)
@@ -54,9 +54,8 @@ function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
   n = 1;
   # sample particles initial distribution
   xs[n, :] = rand(q, N);
-  #@time lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
-  @time lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
-  @time lw[n, :] = normalise(lw[n, :]);
+  lw[n, :] = log(γ(xs[n, :], 0.0)) - log(pdf(q, xs[n, :]));
+  lw[n, :] = normalise(lw[n, :]);
   idx = zeros(Int32, N);
   while true
     # RESAMPLING
@@ -70,9 +69,13 @@ function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
     if n == p+1
       break;
     end
+
     xs[n, :] = xs[n - 1, :] + reshape(rand(q,N), 1, N);
     lw[n, :] = lw[n-1] + log(γ(xs[n, :], 1.0*n/p)) - log(pdf(q, xs[n, :] - xs[n-1, :]));
     lw[n, :] = normalise(lw[n, :]);
   end
-  return xs, lw, essi;
+
+  #return xs, lw, essi;
+
+  return xs;
 end
