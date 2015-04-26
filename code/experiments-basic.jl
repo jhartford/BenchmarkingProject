@@ -1,4 +1,4 @@
-using Distributions: Normal, Uniform, pdf
+  using Distributions: Normal, Uniform, pdf
 using PyPlot
 include("MCMC.jl")
 include("utils.jl")
@@ -78,7 +78,7 @@ true_values = [e_x; e_x2];
 println("Started Experiments")
 n = int(1e6); #number of samples
 g(x) = x.^2; f(x) = x; function_list = [f, g];
-n_experiments = 50;
+n_experiments = 1;
 d = 5;
 mcmc_sampler(n) = mcmc(p, rand(), n = n, stype = Float32, sig = 15);
 smc_sampler(n) = reshape(smcsampler(p, N=n, p = d, σ = 15.0)[d, :], n);
