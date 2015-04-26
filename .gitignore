@@ -1,3 +1,7 @@
+SMC-Samplers-inC/
+SMC-in-matlab/
+.ipynb_checkpoints
+.DS_Store
 *.pdf
 *.aux
 *.log
