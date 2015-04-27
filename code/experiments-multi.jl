@@ -4,47 +4,16 @@ include("MCMC.jl")
 include("utils.jl")
 include("SMCSampler.jl")
 println("Loaded Libraries")
-tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),
-             (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),
-             (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),
-             (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),
-             (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]
-cols = Tuple[]
-for i = 1:20
-  push!(cols, (tableau20[i][1]/255.0, tableau20[i][2]/255.0, tableau20[i][3]/255.0));
-end
-cols
-
-function means(x, functions = [g])
-  summaries = zeros(Float64, length(x), length(functions));
-  for (i, fun) in enumerate(functions)
-    summaries[:, i] = fast_means(x, fun);
-  end
-  return(summaries)
-end
-
-function write_matrix(f::IOStream, data::Array, exp)
-  m, n = size(data);
-  for i in 1:m
-    write(f, string(exp));
-    for j in 1:n
-      write(f, ", ");
-      write(f, string(data[i,j]));
-    end
-    write(f, "\n");
-  end
-end
 
 path = "/Users/jasonhartford/MediaFire/Documents/ComputerScience/UBC/520\ -\ All\ about\ that\ bayes/BenchmarkingProject/Report/plots"
 
-function collapsed_matrix(x, amount = 100)
-  m,n = size(x);
-  d = int(m/amount)
-  collapse = zeros(Float64, d, n);
-  for i = 1:d
-    collapse[i,:] = mean(x[(i-1)*amount + 1: (i)*amount, :], 1)
+function f(x)
+  y = 0.0
+  y = x[:,1].^2
+  for i = 2:10
+    y = y + x[:,i].^2
   end
-  return collapse
+  return(mean(y))
 end
 
 
@@ -64,24 +33,119 @@ function perform_experiment(sampler:: Function, iters:: Int64, particles:: Int64
   return stable, errors
 end
 
+function surfplot(fx, x1lim, x2lim; alpha = 1.0, n = 400, figsize = [10, 10], filename = "3dplot.png", path = "/Users/jasonhartford/MediaFire/Documents/ComputerScience/UBC/520\ -\ All\ about\ that\ bayes/BenchmarkingProject/Report/plots")
+  x1 = linspace(x1lim[1], x1lim[2], n)
+  x2 = linspace(x2lim[1], x2lim[2],n)
+  x1grid = repmat(x1',n,1)
+  x2grid = repmat(x2,1,n)
+
+  z = zeros(n,n)
+
+  for i in 1:n
+      for j in 1:n
+          z[i,j] = fx([x1[i],x2[j]], alpha = alpha)
+      end
+  end
+  z = z./sum(z)
+  plt.clf()
+  fig = plt.figure("pyplot_surfaceplot",figsize=(figsize[1],figsize[2]))
+  ax = fig[:add_subplot](2,1,1, projection = "3d")
+  ax[:plot_surface](x1grid, x2grid, z, rstride=2,edgecolors="k", cstride=2, cmap=ColorMap("coolwarm"), alpha=0.8, linewidth=0.05)
+  xlabel(L"$X_1$")
+  ylabel(L"$X_2$")
+  #zlim(0,0.0004)
+  title("Multivariate Product Space")
+
+  subplot(212)
+  ax = fig[:add_subplot](2,1,2)
+  cp = ax[:contour](x1grid, x2grid, z, cmap=ColorMap("coolwarm"), linewidth=0.5)
+  ax[:clabel](cp, inline=1, fontsize=10)
+  xlabel(L"$X_1$")
+  ylabel(L"$X_2$")
+  title("Contour Plot")
+  tight_layout()
+  savefig("$path/$filename")
+end
+
 # Function
-p(x, alpha = 1.0) = (exp(-(x - 2).^2/2) +
-                       0.5*exp(-(x+2).^2/1) +
-                       0.5*exp(-(x-5).^2/1) +
-                       0.5*exp(-(x-15).^2/1)).^(alpha).*exp(-(x).^2/2).^(1-alpha);
-# Ground truth
-e_x = 4.05887;
-e_x2 = 46.2633;
-true_values = [e_x; e_x2];
+function mix_gaussians(x, means = means, sds = sds, weights = weights, alpha = 1.0)
+    l = length(means);
+    out = 0;
+    for i = 1:l
+        out = out + weights[i] * exp(-(x + means[i]).^2 / (2*sds[i]))
+    end
+    return out.^(alpha).*exp(-(x).^2/2).^(1-alpha)
+end
+
+function multi(x, pars; alpha = 1.0)
+  d = length(x);
+  out = 1.0;
+  easy = 1.0;
+  for i = 1:d
+    m1 = pars[i][1];#10*rand(modes);
+    sd1 = pars[i][2]; # 2*rand(modes) + 0.5;
+    w1 = pars[i][3];# rand(modes) + 0.5;
+    out = out .* mix_gaussians(x[i], m1, sd1, w1);
+    easy = easy .* mix_gaussians(x[i], m1, sd1, w1, 0.0);
+  end
+  return (out).^alpha .* (easy).^(1-alpha)
+end
+
+
+function build_multi(d, modes = 5)
+  pars = [(10*rand(modes), 2*rand(modes) + 0.5, rand(modes) + 0.5) for i = 1:d];
+  m(x; alpha = 1.0) = multi(x, pars, alpha = alpha);
+  return m, pars;
+end
+
+surfplot(p, [-20, 20], [-20, 20], n = 400, figsize = [5, 10])
 
 # Experiments
 println("Started Experiments")
-n = int(1e6); #number of samples
-g(x) = x.^2; f(x) = x; function_list = [f, g];
-n_experiments = 50;
+n = int(1e5); #number of samples
+function_list = [f];
+n_experiments = 1;
 d = 5;
-mcmc_sampler(n) = mcmc(p, rand(), n = n, stype = Float32, sig = 15);
-smc_sampler(n) = reshape(smcsampler(p, N=n, p = d, σ = 15.0)[d, :], n);
+
+n = 100000
+p(rand(10))
+
+## Ground truth
+p_old(x alpha = 1.0) = (exp(-(x - 2).^2/2) +
+                       0.5*exp(-(x+2).^2/1) +
+                       0.5*exp(-(x-5).^2/1) +
+                       0.5*exp(-(x-15).^2/1)).^(alpha).*exp(-(x).^2/2).^(1-alpha);
+
+srand(1)
+p, pars = build_multi(10, 5)
+mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
+#@time x = mcmc_sampler(int(1e7)) takes too long to run every time... uncomment to recalculate
+#y107 = f(x)
+#y106 = a
+#println(y107)
+fx = 301.349057745254;
+
+a = rand(5,10)
+p(a[1,:])
+
+#include("SMCSampler.jl")
+n = int(1e6)
+smc_sampler(n) = smcsampler_multi(p, rand(10), N=n, p = 5, σ = 15.0);
+mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
+smc_x = zeros(Float64, 10, n, 10);
+mcmc_x = zeros(Float64, 10, n, 10);
+smc_time = zeros(Float64, 10);
+mcmc_time = zeros(Float64, 10);
+for i = 1:10
+  println(i)
+  tic()
+  smc_x[i, :, :] = smc_sampler(n);
+  smc_time[i] = toc()
+  tic()
+  mcmc_x[i, :, :] = mcmc_sampler(n);
+  mcmc_time[i] = toc()
+end
+f(x)
 
 # get mcmc samples
 tic()

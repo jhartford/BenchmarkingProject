@@ -1,4 +1,4 @@
-using Distributions: Normal, Multinomial, Binomial, MvNormal
+using Distributions: Normal, Multinomial, Binomial, MvNormal, pdf
 # Useful functions
 ess(w) = 1/sum(exp(2*w));
 phi(n, p) = n/p;
@@ -79,3 +79,51 @@ function smcsampler(γ::Function; δ = 0.5, N = 1000, p = 100, σ = 0.5)
 
   return xs;
 end
+
+function smcsampler_multi(γ::Function, x0; δ = 0.5, N = 1000, p = 100, σ = 0.5)
+  # γ = ESS threshold
+  # N = number of particles
+  # p = Annealing steps π_n(x) ∝ [π(x)]^ϕ_n [μ_1(x)]^(1-ϕ_n)   0 ≤ ϕ_1 ≤ ... ≤ ϕ_p = 1
+  # δ : N*δ = T, the threshold at which we resample the particles
+  d = length(x0);
+  q = MvNormal(σ*eye(d)); # Proposal Distribution
+  x = zeros(Float64, N, d); # particles
+  x_prev = zeros(Float64, N, d); # particles
+  lw = zeros(Float64, N); # weights
+  lw_prev = zeros(Float64, N); # weights
+  essi = 0.0; # ESS values
+  # SMC Algorithm
+  # INITIALIZATION
+  n = 1;
+  # sample particles initial distribution
+  x = rand(q,N)';
+  for i = 1:N
+    lw[i] = log(γ(x[i, :], alpha = 0.0)) - log(pdf(q, reshape(x[i, :],d)));
+  end
+  lw = normalise(lw);
+  idx = zeros(Int32, N);
+  while true
+    # RESAMPLING
+    essi = ess(lw);
+    if essi < N*δ
+      idx = resample_idx(reshape(exp(lw),N), idx);
+      x = x[idx, :];
+      reset_weights!(lw, log(1/N), n);
+    end
+    x_prev = x;
+    lw_prev = lw;
+    n = n + 1;
+    if n == p+1
+      break;
+    end
+
+    x = x_prev + rand(q,N)';
+    for i = 1:N
+      lw[i] = lw_prev[i] + log(γ(x[i, :], alpha = 1.0*n/p)) - log(pdf(q, reshape(x[i, :] - x_prev[i, :],d)));
+    end
+    #lw[n, :] = lw[n-1] + log(γ(xs[n, :], 1.0*n/p)) - log(pdf(q, xs[n, :] - xs[n-1, :]));
+    lw = normalise(lw);
+  end
+  return x;
+end
+
