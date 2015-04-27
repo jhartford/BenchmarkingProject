@@ -97,7 +97,7 @@ We focused on three metrics in assessing the performance:
 
 To understand the metrics, consider Figure \ref{convergence} which shows a typical run of the two samplers where we are trying to estimate the mean of the function shown in Figure \ref{function}. The absolute value is large for both samplers within the first 10 000 iterations and before converging to within 2\% of the true value. In this particular run, the SMC sampler converged far quicker than the MCMC sampler, but each run is quite sensitive to the random seeds used. To avoid this, we average the absolute error over 50 experiments. \\
 
-By considering the performance relative to the number particles, we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (we anneal the sample from an easy distribution to the hard one). To address this computational constraint, we compare performance relative to average wall time. Again, we average the wall time over all 50 experiments to smooth minor variances over individual runs. \\
+By considering the performance relative to the number particles, we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (we anneal the sample from an easy distribution to the hard one). To address this computational constraint, we also compare performance relative to average wall time. Again, we average the wall time over all 50 experiments to smooth minor variances over individual runs. \\
 
 
 \begin{figure}[htbp]
@@ -108,22 +108,19 @@ By considering the performance relative to the number particles, we overstate th
 \end{center}
 \end{figure}
 
-Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value frequently within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations.
+Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value frequently within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations. To capture this we also examine the number of iterations before stabilising within 2\% of the true value for each run.
 
 %To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
 
 
 \section*{Results}
-
-
-
-
-
+\subsection*{Average absolute error by number of particles. }
+Figure \ref{ex} shows the performance MCMC and the SMC sampler in estimating the $E[x]$.
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{plots/E_X.png}
-\caption{default}
-\label{default}
+\caption{Performance by number of particles of the two samplers in estimating the mean.}
+\label{ex}
 \end{center}
 \end{figure}
 
@@ -134,6 +131,8 @@ Finally, by considering average performance over 50 runs, we potentially miss po
 \label{default}
 \end{center}
 \end{figure}
+
+\subsection*{Average absolute error by wall time. }
 
 \begin{figure}[htbp]
 \begin{center}
@@ -151,6 +150,7 @@ Finally, by considering average performance over 50 runs, we potentially miss po
 \end{center}
 \end{figure}
 
+\subsection*{Number of particles until convergence }
 
 \begin{figure}[htbp]
 \begin{center}
