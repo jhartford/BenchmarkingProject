@@ -110,10 +110,6 @@ By considering the performance relative to the number particles, we overstate th
 
 Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value frequently within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations. To capture this we also examine the number of iterations before stabilising within 2\% of the true value for each run.
 
-\section*{Results}
-\subsection*{MAE by number of particles}
-Figure \ref{ex} shows the performance of MCMC and the SMC sampler in estimating the $E[x]$ by the mean absolute error (MAE) by number of particles. It is quite apparent that the SMC sampler shows the largest improvement in absolute error over MCMC when the number of particles initiated are below 600 000. With the number of particles above 600 000, errors of both samplers appear to be converging to one another where only a negligible improvement with the SMC sampler exists.
-
 
 \section*{Results}
 
@@ -140,9 +136,9 @@ Figure \ref{ex} shows the average performance of MCMC and SMC Samplers in estima
 
 \subsection*{Mean Absolute Error by wall time. }
 
-While the results of Figure \ref{ex} and \ref{ex2} appear to favour SMC, the story is complicated when one takes wall-time into account. Each SMC sample is the result of $p$ steps of annealing (where $p=5$ in these experiments) and thus is on average approximately $p$ more expensive to compute.
+While the results of Figure \ref{ex} and \ref{ex2} appear to favour SMC, the story is complicated when one takes wall-time into account. Each SMC sample is the result of $p$ steps of annealing (where $p=5$ in these experiments) and thus is on average approximately $p$ more expensive to compute. \\
 
-This is clearly illustrated by Figures \ref{walltime_ex} and  \ref{walltime_ex2}. In Figures \ref{walltime_ex}, each of the 50 MCMC runs took approximately $2.5$ seconds to complete while the SMC runs took 10 seconds. For the simple mean estimate, this additional time bought very little benefit in terms of accuracy. That said, notice that at every point in time the SMC error rate is very similar to that of the MCMC sampler. Similarly, in Figure \ref{walltime_ex2}, the average performance of the SMC sampler closely matched that of the MCMC sampler in their estimate $E[x^2]$.
+This is clearly illustrated by Figures \ref{walltime_ex} and  \ref{walltime_ex2}. In Figures \ref{walltime_ex}, each of the 50 MCMC runs took approximately $2.5$ seconds to complete while the SMC runs took 10 seconds. For the simple mean estimate, this additional time bought very little benefit in terms of accuracy. That said, notice that at every point in time the SMC error rate is very similar to that of the MCMC sampler. Similarly, in Figure \ref{walltime_ex2}, the average performance of the SMC sampler closely matched that of the MCMC sampler in their estimate $E[x^2]$. \\
 
 This suggests that in practice one could sample fewer particles using the SMC sampler to achieve similar performance to MCMC. While this allows SMC to match MCMC's performance, it does not show a clear advantage in simple one dimensional cases.
 
@@ -165,7 +161,7 @@ This suggests that in practice one could sample fewer particles using the SMC sa
 
 \subsection*{Number of particles until convergence }
 
-The clearest difference between the performance of MCMC and SMC Samplers is shown in Figures \ref{fig:itersEX} and \ref{fig:itersEX2}. There were a significant number of runs that only converged to within 2\% of the true value after 200 000 iterations, while in most cases SMC had converged to within 2\% of the true value with fewer than 100 000 particles. 
+The clearest difference between the performance of MCMC and SMC Samplers is shown in Figures \ref{fig:itersEX} and \ref{fig:itersEX2}. There were a significant number of runs that only converged to within 2\% of the true value after 200 000 iterations, while in most cases SMC had converged to within 2\% of the true value with fewer than 100 000 particles. \\ 
 
 While this result can partially inferred from the earlier accuracy results, it has important implications. In practice, one would not know the true value of the parameter, so if accuracy is a priority, it would be concerning that there is a nontrivial probability that MCMC may take over 200 000 iterations to converge.  That said, its cheaper iterations are a benefit in this regard as practitioners may simply run the chain for longer to achieve desired levels of accuracy.
 
