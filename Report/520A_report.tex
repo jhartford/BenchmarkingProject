@@ -81,7 +81,7 @@ w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}
 $K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC Samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (2) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold, otherwise re-sample \cite{DelMoral2005}.
 
 \subsection*{Annealing}
-SMC Samplers use a sequence of distributions $\{\pi_n\}_{n\in \mathbb{T}}$ to move particles around the outcome space. The there are a wide variety of potential choices for this sequence depending on the application. For this project we use a simple annealing strategy to anneal from a distribution that is easy to sample from to the distribution of interest. Our sequence of distributions is constructed as follows,
+SMC Samplers use a sequence of distributions $\{\pi_n\}_{n\in \mathbb{T}}$ to move particles around the outcome space. The there are a wide variety of potential choices for this sequence depending on the application. For this project we use a simple annealing strategy to anneal from a distribution from which it is easy to sample, to the distribution of interest. Our sequence of distributions is constructed as follows,
 \[
 \pi_n(x) \propto [\mu(x)]^{\alpha_n}  [\pi(x)]^{1-\alpha_n}
 \]
