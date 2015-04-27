@@ -8,9 +8,10 @@ println("Loaded Libraries")
 path = "/Users/jasonhartford/MediaFire/Documents/ComputerScience/UBC/520\ -\ All\ about\ that\ bayes/BenchmarkingProject/Report/plots"
 
 function f(x)
+  m, n = size(x)
   y = 0.0
   y = x[:,1].^2
-  for i = 2:10
+  for i = 2:n
     y = y + x[:,i].^2
   end
   return(mean(y))
@@ -46,7 +47,7 @@ function surfplot(fx, x1lim, x2lim; alpha = 1.0, n = 400, figsize = [10, 10], fi
           z[i,j] = fx([x1[i],x2[j]], alpha = alpha)
       end
   end
-  z = z./sum(z)
+  #z = z./sum(z)
   plt.clf()
   fig = plt.figure("pyplot_surfaceplot",figsize=(figsize[1],figsize[2]))
   ax = fig[:add_subplot](2,1,1, projection = "3d")
@@ -77,6 +78,27 @@ function mix_gaussians(x, means = means, sds = sds, weights = weights, alpha = 1
     return out.^(alpha).*exp(-(x).^2/2).^(1-alpha)
 end
 
+function print_equation(par, d, m, letters)
+  for i = 1:d
+    print("(")
+    a = letters[i]
+    for j = 1:m
+      w = pars[i][3][j]
+      u = pars[i][1][j]
+      s = pars[i][2][j]
+      print(@sprintf("%1.3f*exp(-(%s+%1.3f)^2/(2*%1.3f))", w, a, u, s))
+      if j < m
+        print("+")
+      end
+    end
+    if(i < d)
+      print(")*")
+    else
+      print(")\n")
+    end
+  end
+end
+
 function multi(x, pars; alpha = 1.0)
   d = length(x);
   out = 1.0;
@@ -98,7 +120,6 @@ function build_multi(d, modes = 5)
   return m, pars;
 end
 
-surfplot(p, [-20, 20], [-20, 20], n = 400, figsize = [5, 10])
 
 # Experiments
 println("Started Experiments")
@@ -107,64 +128,83 @@ function_list = [f];
 n_experiments = 1;
 d = 5;
 
-n = 100000
 p(rand(10))
+print(pars)
 
 ## Ground truth
-p_old(x alpha = 1.0) = (exp(-(x - 2).^2/2) +
-                       0.5*exp(-(x+2).^2/1) +
-                       0.5*exp(-(x-5).^2/1) +
-                       0.5*exp(-(x-15).^2/1)).^(alpha).*exp(-(x).^2/2).^(1-alpha);
-
 srand(1)
-p, pars = build_multi(10, 5)
+p, pars = build_multi(2, 2)
 mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
+
 #@time x = mcmc_sampler(int(1e7)) takes too long to run every time... uncomment to recalculate
 #y107 = f(x)
 #y106 = a
 #println(y107)
-fx = 301.349057745254;
+
+print_equation(pars, 2, 2, ['y', 'x'])
+surfplot(p, [-5, 5], [-5, 5])
+
+fx = 106.467;
 
 a = rand(5,10)
 p(a[1,:])
 
 #include("SMCSampler.jl")
-n = int(1e6)
-smc_sampler(n) = smcsampler_multi(p, rand(10), N=n, p = 5, σ = 15.0);
-mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
-smc_x = zeros(Float64, 10, n, 10);
-mcmc_x = zeros(Float64, 10, n, 10);
-smc_time = zeros(Float64, 10);
-mcmc_time = zeros(Float64, 10);
-for i = 1:10
+n = int(1e5)
+d= 2;
+smc_sampler(n) = smcsampler_multi(p, rand(d), N=n, p = 5, σ = 15.0);
+mcmc_sampler(n) = mcmc_multi(p, rand(d), n = n, sig = 10);
+x, lw = smc_sampler(n)
+x2 = mcmc_sampler(n)
+f(x)
+f(x2)
+
+runs = 5
+
+smc_x = zeros(Float64, runs, n, d);
+mcmc_x = zeros(Float64, runs, n, d);
+smc_time = zeros(Float64, runs);
+mcmc_time = zeros(Float64, runs);
+for i = 1:runs
   println(i)
   tic()
-  smc_x[i, :, :] = smc_sampler(n);
+  smc_x[i, :, :] = smcsampler_multi(p, rand(d), N=n, p = 5, σ = 15.0);
   smc_time[i] = toc()
   tic()
   mcmc_x[i, :, :] = mcmc_sampler(n);
   mcmc_time[i] = toc()
 end
-f(x)
 
-# get mcmc samples
-tic()
-mcmc_stab, mcmc_errs = perform_experiment(mcmc_sampler, n_experiments, n, function_list, true_values, col_amount = 1);
-mcmc_walltime = toc();
-mcmc_time = [i * mcmc_walltime/n/n_experiments for i in 1:n]
-size(mcmc_errs)
-mcmc_er_mean = reshape(mean(mcmc_errs, 1), n, 2)
-mcmc_er_sd = reshape(std(mcmc_errs, 1), n, 2)
+mn = reshape(mean(smc_x, 3), runs, n)'
 
-# get smc samples
-tic()
-smc_stab, smc_errs = perform_experiment(smc_sampler, n_experiments, n, function_list, true_values, col_amount = 1);
-smc_walltime = toc();
-size(smc_errs)
-smc_time = [i * smc_walltime/n/n_experiments for i in 1:n]
-smc_er_mean = reshape(mean(smc_errs, 1), n, 2)
-smc_er_sd = reshape(std(smc_errs, 1), n, 2)
+function fast_means(x::Array, f=default_f)
+  n, d = size(x);
+  out = zeros(Float64, n);
+  out[1] = f(x[1, :]);
+  for i = 2:n
+    out[i] = (i-1)/i*out[i-1] + f(x[i, :])/i;
+  end
+  out
+end
 
+f(reshape(smc_x[2,:,:], n, d))
+
+smc_y = zeros(Float64, runs, n)
+mcmc_y = zeros(Float64, runs, n);
+for i = 1:runs
+  smc_y[i, :] = fast_means(reshape(smc_x[i,:,:], n, d), f);
+  mcmc_y[i, :] = fast_means(reshape(mcmc_x[i,:,:], n, d), f);
+end
+
+
+smc_y_ave = mean(smc_y, 1)'
+mcmc_y_ave = mean(mcmc_y, 1)'
+
+writecsv("smc_y_ave.csv", smc_y_ave)
+writecsv("mcmc_y_ave.csv", mcmc_y_ave)
+
+writecsv("smc_y.csv", smc_y)
+writecsv("mcmc_y.csv", mcmc_y)
 
 # Plot figures
 fig_x = 9;
@@ -173,9 +213,8 @@ fig_y = 5;
 println("Plotting Figures 1/8")
 plt.figure(1, figsize=(fig_x,fig_y));
 plt.clf();
-plt.yscale("log");
-smc_plt = plt.plot(1:n, smc_er_mean[:,1], color = cols[1]);
-mcmc_plt = plt.plot(1:n, mcmc_er_mean[:,1], color = cols[4]);
+smc_plt = plt.plot(1:n, smc_y', color = cols[1]);
+mcmc_plt = plt.plot(1:n,mcmc_y', color = cols[4]);
 plt.title(L"Mean absolute error of $E[x]$", family = "serif");
 plt.ylabel("Mean error", family = "serif");
 plt.xlabel("Number of Particles", family = "serif");

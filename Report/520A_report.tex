@@ -49,7 +49,7 @@ Let $x'$ be the proposal candidate for the next step of the Markov chain, which 
 If the proposal candidate is rejected, then the next sampled value is taken to be the current value. We iterate this process until some form of convergence is reached (see section Convergence Benchmarks). Typically, a Markov chain takes a number of steps from the initial point before reasonably traversing the area and converging to the invariant distribution, so a sequence of the initial steps is discarded called the ``burn-in" period. It is important to note that the target density appears as a ratio in the probability $ \alpha(x,x')$ and therefore the algorithm can be implemented without the normalizing constant $Z = \int \mathcal{L}(x|\theta)\pi(\theta)$ inherent in a Bayesian framework.
 
 \section*{Sequential Monte Carlo (SMC) Samplers}
-The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to an alternative sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well suited for Bayesian analysis. \\
+The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to an alternative sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well-suited for Bayesian analysis. \\
 
 SMC samplers can be considered as an adaptation to Sequential Importance Sampling (SIS). A major limitation of the SIS approach is that the importance distribution $\eta_n(x_n)$ is not tractable and in most cases impossible to compute, as it requires integration of the joint $x_{1:n-1}$. To mitigate this issue,  we essentially perform importance sampling on extended space $E^n$ by introducing a sequence of extended probability distributions $\tilde{\pi}_n$ through the use of artificial backward Markov kernels $L_k(x_{k+1},x_k)$ as follows:
 
@@ -76,6 +76,46 @@ w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}
 \]
 
 $K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (2) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold, otherwise re-sample.
+
+\subsection*{Annealing}
+SMC Samplers use a sequence of distributions $\{\pi_n\}_{n\in \mathbb{T}}$ to move particles around the outcome space. The there are a wide variety of potential choices for this sequence depending on the application. For this project we use a simple annealing strategy to anneal from a distribution that is easy to sample from to the distribution of interest. Our sequence of distributions is constructed as follows,
+\[
+\pi_n(x) \propto [\mu(x)]^{\alpha_n}  [\pi(x)]^{1-\alpha_n}
+\]
+where $\pi(x)$ is a Gaussian and $\mu(x)$ is our target distribution. Figure \ref{annealing} visualises this approach. With $\alpha = 0.0$, we sample from a Gaussian, but as we increase the temperature to $\alpha = 1$ we sample from a more complex multimodal distribution.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_00.png}
+               \caption{$\alpha = 0.0$}
+        \label{fig:y equals x}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_30.png}
+        \caption{$\alpha = 0.3$}
+        \label{fig:three sin x}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_70.png}
+        \caption{$\alpha = 0.7$}
+        \label{fig:five over x}
+    \end{subfigure}
+    \hfill
+        \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation1_00.png}
+        \caption{$\alpha = 1.0$}
+        \label{fig:five over x}
+    \end{subfigure}
+    \caption{Annealing from an easy distribution to a difficult distribution with two dimensional support.}
+    \label{annealing}
+\end{figure}
 
 \section*{Convergence Benchmarks}
 As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.\\
@@ -183,39 +223,31 @@ While this result can partially inferred from the earlier accuracy results, it h
 \end{center}
 \end{figure}
 
+\subsection*{Multivariate sampling}
+To test performance in higher dimensions we followed the same approach of building a multimodal distribution that we could still integrate using symbolic integration. To do this, we built a function of the following form,
+\[
+f(x_i) = \prod_i \sum_j w_{ij} \exp(-(x_i - \mu_{ij})^2/2s_{ij})
+\]
+where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. This allowed us to build multimodal functions in arbitrarily high dimensional spaces. However, in order integrate symbolically, we limited the experiments to two dimensions. 
 
-\begin{figure}
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_00.png}
-               \caption{$\alpha = 0.0$}
-        \label{fig:y equals x}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_30.png}
-        \caption{$\alpha = 0.3$}
-        \label{fig:three sin x}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_70.png}
-        \caption{$\alpha = 0.7$}
-        \label{fig:five over x}
-    \end{subfigure}
-    \hfill
-        \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation1_00.png}
-        \caption{$\alpha = 1.0$}
-        \label{fig:five over x}
-    \end{subfigure}
-    \caption{Annealing from an easy distribution to a difficult distribution with two dimensional support.}
-    \label{fig:three graphs}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/2d-errors.png}
+\caption{Performance by number of particles of the two samplers in estimating $E[x_1^2 + x_2^2]$}
+\label{ex2}
+\end{center}
 \end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/2d-errors_walltime.png}
+\caption{Performance by number of particles of the two samplers in estimating $E[x_1^2 + x_2^2]$ by the average amount of time taken in seconds}
+\label{ex}
+\end{center}
+\end{figure}
+
+
 
 
 \section*{Concluding Remarks}
@@ -225,7 +257,7 @@ This paper has outlined the benchmarked comparison of MCMC and SMC smplers to ev
 Despite the improved convergence results, the computational time to perform the SMC sampler is far greater than the typical MCMC approach. This may lead one to lean toward MCMC in higher dimensional space where computationally expensive experiments render the SMC sampler infeasible.
 
 \subsection*{Further Investigation}
-Due to time limitations of this paper, interesting areas relating to sampling of nonparametric Bayesian models were left unanswered. The growing interest in nonparametric Bayesian analysis has lead to increasing demands for high-performing samplers for posterior estimation, therefore providing an intriguing setting to benchmark the SMC and MCMC samplers. There is plentiful material outlining MCMC methodologies in various applied settings, but little investigation has been conducted with the much newer SMC smplers. Further areas of research into various applications may find SMC samplers to be highly valuable in scenarios where complex, multi-modal distributions pose a difficulty for the conventional MCMC.
+Due to time limitations of this paper, interesting areas relating to sampling of nonparametric Bayesian models were left unanswered. The growing interest in nonparametric Bayesian analysis has lead to increasing demands for high-performing samplers for posterior estimation, therefore providing an intriguing setting to benchmark the SMC and MCMC samplers. There is plentiful material outlining MCMC methodologies in various applied settings, but little investigation has been conducted with the much newer SMC Samplers. Further areas of research into various applications may find SMC samplers to be highly valuable in scenarios where complex, multi-modal distributions pose a difficulty for the conventional MCMC.
 
 
 \section*{References}

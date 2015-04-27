@@ -8,6 +8,27 @@ function diff_from_function(x::Array, f=default_f)
   out
 end
 
+function print_equation(par, d, m, letters)
+  for i = 1:d
+    print("(")
+    a = letters[i]
+    for j = 1:m
+      w = pars[i][3][j]
+      u = pars[i][1][j]
+      s = pars[i][2][j]
+      print(@sprintf("%1.3f*exp(-(%s+%1.3f)^2/(2*%1.3f))", w, a, u, s))
+      if j < m
+        print("+")
+      end
+    end
+    if(i < d)
+      print(")*")
+    else
+      print(")\n")
+    end
+  end
+end
+
 function write_matrix(f::IOStream, data::Array, exp)
   m, n = size(data);
   for i in 1:m

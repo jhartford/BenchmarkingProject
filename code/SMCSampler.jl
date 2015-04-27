@@ -26,6 +26,13 @@ function reset_weights!(X::Array{Float64}, value::Float64, idx::Int64)
   end
 end
 
+function reset_weights_multi!(X::Array{Float64}, value::Float64)
+  # Resets the weights in a row of a matrix to the value given in value. Operates in place
+  for i = 1:length(X)
+    X[i] = value
+  end
+end
+
 function normalise(x::Array)
   mx = maximum(x);
   z = sum(exp(x .- mx));
@@ -108,7 +115,7 @@ function smcsampler_multi(γ::Function, x0; δ = 0.5, N = 1000, p = 100, σ = 0.
     if essi < N*δ
       idx = resample_idx(reshape(exp(lw),N), idx);
       x = x[idx, :];
-      reset_weights!(lw, log(1/N), n);
+      reset_weights_multi!(lw, log(1/N));
     end
     x_prev = x;
     lw_prev = lw;
@@ -126,6 +133,6 @@ function smcsampler_multi(γ::Function, x0; δ = 0.5, N = 1000, p = 100, σ = 0.
   end
   #idx = resample_idx(reshape(exp(lw),N), idx);
   #x = x[idx, :];
-  return x, lw;
+  return x;
 end
 
