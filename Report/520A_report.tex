@@ -13,7 +13,7 @@
 \begin{document}
 	
 \begin{frontmatter}
-\title{A Comparison of MCMC and SMC Samplers to Nonparametric Bayesian Models}
+\title{A Benchmarking comparison of MCMC and SMC Samplers}
 \author{Jason Hartford - 81307143 \\ Dustin Johnson - 11338118}
 
 \begin{abstract}
@@ -86,10 +86,48 @@ w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}
 $K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (3) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold.
 
 \section*{Convergence Benchmarks}
-As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
+As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.
+
+To avoid this we focused on sampling from a multimodal distribution that was integrable via symbolic integration techniques. This allowed us to compare the convergence of the two samplers to their true values. The one dimensional experiments used the function shown in Figure \ref{function}. It is an arbitrary mixture of gaussians, chosen because it is multimodal and integrable via symbolic integration.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/function.pdf}
+\caption{Distribution of interest}
+\label{function}
+\end{center}
+\end{figure}
+
+We focused on three metrics in assessing the performance:
+\begin{itemize}
+\item Average absolute error by number of particles. 
+\item Average absolute error by wall time. 
+\item Number of particles until convergence to within 2\% of the true value. 
+\end{itemize}
+
+To understand the metrics, consider Figure \ref{convergence} which shows a typical run of the two samplers where we are trying to estimate the mean of the function shown in Figure \ref{function}. The absolute is large for both samplers is large for the first 10 000 iterations and before converging to within 2\% of the true value. In this particular run, the SMC sampler converged far quicker than the MCMC sampler, but this is sensitive to the random seeds used. To avoid this, we average the absolute error over 50 experiments.
+
+By considering the performance relative to the number particles we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (because we anneal the sample from an easy distribution to the hard one). To address this, we compare performance relative to average wall time. Again we average the wall time over all 50 experiments to smooth minor variances between individual runs.
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width = \textwidth]{plots/Convergence.png}
+\caption{Converge of a single run of MCMC and SMC. In this run SMC converged to within 2\% of the true value after 35 717 iterations and MCMC converged after 226 887 iterations (indicated by the red vertical lines)}
+\label{convergence}
+\end{center}
+\end{figure}
+
+Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value many times within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations.
+
+%To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
 
 
 \section*{Results}
+
+
+
+
 
 \begin{figure}[htbp]
 \begin{center}
@@ -127,16 +165,16 @@ As this paper is dedicated to the comparison of MCMC and SMC samplers, we need t
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{plots/iterations.pdf}
-\caption{default}
-\label{default}
+\caption{The number of iterations before the sampler converged to within $2\%$ of the true value in each of 50 experiments.}
+\label{fig:itersEX}
 \end{center}
 \end{figure}
 
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{plots/iterationsEx2.pdf}
-\caption{default}
-\label{default}
+\caption{The number of iterations before the sampler converged to within $2\%$ of the true value in each of 50 experiments.}
+\label{ig:itersEX2}
 \end{center}
 \end{figure}
 
