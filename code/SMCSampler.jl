@@ -124,6 +124,8 @@ function smcsampler_multi(γ::Function, x0; δ = 0.5, N = 1000, p = 100, σ = 0.
     #lw[n, :] = lw[n-1] + log(γ(xs[n, :], 1.0*n/p)) - log(pdf(q, xs[n, :] - xs[n-1, :]));
     lw = normalise(lw);
   end
-  return x;
+  #idx = resample_idx(reshape(exp(lw),N), idx);
+  #x = x[idx, :];
+  return x, lw;
 end
 
