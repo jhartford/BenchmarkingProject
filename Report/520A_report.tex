@@ -121,7 +121,7 @@ where $\pi(x)$ is a Gaussian and $\mu(x)$ is our target distribution. Figure \re
 \section*{Convergence Benchmarks}
 As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.\\
 
-To avoid this we focused on sampling from a multimodal distribution that was integrable via symbolic integration techniques. This allowed us to compare the convergence of the two samplers to their true values. The one dimensional experiments used the function shown in Figure \ref{function}. It is an arbitrary mixture of Gaussian distributions, chosen because it is multimodal and integrable via symbolic integration.
+To avoid this we focused on sampling from a multimodal distribution that was integrable via symbolic integration techniques. This allowed us to compare the convergence of the two samplers to their true values. The one dimensional experiments used the function shown in Figure \ref{function}. It is an arbitrary mixture of Gaussian distributions, chosen because it is multimodal and integrable via symbolic integration. \\
 
 \begin{figure}[htbp]
 \begin{center}
@@ -131,6 +131,7 @@ To avoid this we focused on sampling from a multimodal distribution that was int
 \end{center}
 \end{figure}
 
+\noindent
 We focused on three metrics in assessing the performance:
 \begin{itemize}
 \item Mean absolute error (MAE) by number of particles. 
@@ -226,12 +227,14 @@ While this result can partially inferred from the earlier accuracy results, it h
 
 \subsection*{Multivariate sampling}
 To test performance in higher dimensions we followed the same approach of building a multimodal distribution that we could still integrate using symbolic integration. To do this, we built a function of the following form,
+
 \[
 f(x_i) = \prod_i \sum_j w_{ij} \exp(-(x_i - \mu_{ij})^2/2s_{ij})
 \]
-where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. This allowed us to build multimodal functions in arbitrarily high dimensional spaces. However, in order integrate symbolically and keep CPU manageable, we limited our experiments to two dimensions. 
 
-Figure \ref{multi_particles} plots the mean absolute error by the number of particles used. Here the annealing steps taken by the SMC Sampler show their utility. It achieves far lower error rates and consistently outperforms across the range of particles.
+where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. This allowed us to build multimodal functions in arbitrarily high dimensional spaces. However, in order integrate symbolically and keep CPU manageable, we limited our experiments to two dimensions. \\
+
+Figure \ref{multi_particles} plots the mean absolute error by the number of particles used. Here the annealing steps taken by the SMC Sampler show their utility. It achieves far lower error rates and consistently outperforms across the range of particles. \\
 
 This improved performance does come at the expense of longer wall time, but as Figure $\ref{multi_walltime}$ demonstrates, most of the error reduction is achieved in the first 0.2 seconds, and at every time step, the SMC Sampler outperforms MCMC on this example.
 
