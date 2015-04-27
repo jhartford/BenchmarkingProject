@@ -1,6 +1,8 @@
 \documentclass[12pt]{elsarticle}
 \usepackage{graphicx}
 \usepackage{amssymb}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{lineno}
 \usepackage{amsmath} 
 \usepackage{graphicx}
@@ -185,6 +187,39 @@ While this result can partially inferred from the earlier accuracy results, it h
 \end{center}
 \end{figure}
 
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_00.png}
+               \caption{$\alpha = 0.0$}
+        \label{fig:y equals x}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_30.png}
+        \caption{$\alpha = 0.3$}
+        \label{fig:three sin x}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation0_70.png}
+        \caption{$\alpha = 0.7$}
+        \label{fig:five over x}
+    \end{subfigure}
+    \hfill
+        \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+       \includegraphics[width = \textwidth, trim = 3cm 11.7cm 1cm 0.5cm, clip]{plots/Annealing-Normalised/Normalised-Mix-Gaussian-anealing-animation1_00.png}
+        \caption{$\alpha = 1.0$}
+        \label{fig:five over x}
+    \end{subfigure}
+    \caption{Annealing from an easy distribution to a difficult distribution with two dimensional support.}
+    \label{fig:three graphs}
+\end{figure}
 
 
 \section*{Concluding Remarks}
