@@ -33,12 +33,12 @@ MCMC \sep SMC Samplers \sep Bayesian Analysis \sep Julia
 \section*{Introduction}
 Markov Chain Monte Carlo (MCMC) has become a favoured tool for Statisticians when sampling from complex distributions by constructing an ergodic Markov chain with an invariant distribution through Metropolis-Hasting (MH) steps. It is for this reason that MCMC has become the standard sampling technique that has enabled Bayesian statistics to evolve and be applied to increasingly complex and higher dimensional problems. However, MCMC has been shown to get stuck in local modes and difficulty arises when assessing whether the Markov chain has truly reached its stationary distribution. In addition, the full joint distribution must be evaluated each time a new variable is added, which is infeasible under a sequential context. \\
 
-Escalating interest in Bayesian modeling has increased the complexity of the posterior distributions, where multiple modes in high dimensional space are common. This complexity has placed higher demands for improvements in sampling methods in terms of performance and computational efficiency. Sequential Monte Carlo (SMC) samplers offer an alternative to MCMC by offering the ability to sample from a posterior distribution through a novel online algorithm, as opposed to sampling from the entire joint distribution each time new observations enters the model.  Additionally, SMC sSaplers have been shown to cover multiple modes with improved efficiency due to the reweighing of particles after each iteration of the algorithm. \\
+Escalating interest in Bayesian modeling has increased the complexity of the posterior distributions, where multiple modes in high dimensional space are common. This complexity has placed higher demands for improvements in sampling methods in terms of performance and computational efficiency. Sequential Monte Carlo (SMC) samplers offer an alternative to MCMC by offering the ability to sample from a posterior distribution through a novel online algorithm, as opposed to sampling from the entire joint distribution each time new observations enters the model.  Additionally, SMC samplers have been shown to cover multiple modes with improved efficiency due to the reweighing of particles after each iteration of the algorithm. \\
 
 In the sections to follow, we will provide a brief outline of MCMC and SMC samplers, then compare and contrast their performance under a series of experiments with artificial density functions of varying dimensions.
 
 \section*{Markov Chain Monte Carlo (MCMC)}
-MCMC accomplishes the task of approximating the area of an unknown distribution by moving through the space of the joint distribution by a series of carefully taken steps. Each "chain" of steps is an MCMC sampler if they are ergodic Markov chains (irreducible and aperiodic) that have the target distribution as the invariant distribution.  We will focus on the most popular MCMC method, called the Metropolis-Hastings (MH) algorithm. Most other MCMC methods can be viewed as special cases of this algorithm (Andrieu, et al. 2003). \\
+MCMC accomplishes the task of approximating the area of an unknown distribution by moving through the space of the joint distribution by a series of carefully taken steps. Each ``chain" of steps is an MCMC sampler if they are ergodic Markov chains (irreducible and aperiodic) that have the target distribution as the invariant distribution.  We will focus on the most popular MCMC method, called the Metropolis-Hastings (MH) algorithm. Most other MCMC methods can be viewed as special cases of this algorithm \cite{Andrieu2003}. \\
 
 Let $x'$ be the proposal candidate for the next step of the Markov chain, which is drawn from the proposal distribution denoted $q(x'|x)$, where $x$ is our current point. This proposal is then accepted as the next step in the Markov chain according to the probability $\alpha(x,x')$, where 
 
@@ -46,10 +46,10 @@ Let $x'$ be the proposal candidate for the next step of the Markov chain, which 
 \alpha(x,x') = \min{\left[1, \frac{\pi(x') q(x|x')}{\pi(x)q(x'|x)}\right]} \quad (1)
 \].
 
-If the proposal candidate is rejected, then the next sampled value is taken to be the current value. We iterate this process until some form of convergence is reached (see section Convergence Benchmarks). Typically, a Markov chain takes a number of steps from the initial point before reasonably traversing the area and converging to the invariant distribution, so a sequence of the initial steps is discarded called the ``burn-in" period. It is important to note that the target density appears as a ratio in the probability $ \alpha(x,x')$ and therefore the algorithm can be implemented without the normalizing constant $Z = \int \mathcal{L}(x|\theta)\pi(\theta)$ inherent in a Bayesian framework.
+If the proposal candidate is rejected, then the next sampled value is taken to be the current value \cite{Andrieu2003}. We iterate this process until some form of convergence is reached (see section Convergence Benchmarks). Typically, a Markov chain takes a number of steps from the initial point before reasonably traversing the area and converging to the invariant distribution, so a sequence of the initial steps is discarded called the ``burn-in" period. It is important to note that the target density appears as a ratio in the probability $ \alpha(x,x')$ and therefore the algorithm can be implemented without the normalizing constant $Z = \int \mathcal{L}(x|\theta)\pi(\theta)$ inherent in a Bayesian framework.
 
 \section*{Sequential Monte Carlo (SMC) Samplers}
-The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to an alternative sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well suited for Bayesian analysis. \\
+The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to a sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well suited for Bayesian analysis \cite{Bishop2007}. \\
 
 SMC samplers can be considered as an adaptation to Sequential Importance Sampling (SIS). A major limitation of the SIS approach is that the importance distribution $\eta_n(x_n)$ is not tractable and in most cases impossible to compute, as it requires integration of the joint $x_{1:n-1}$. To mitigate this issue,  we essentially perform importance sampling on extended space $E^n$ by introducing a sequence of extended probability distributions $\tilde{\pi}_n$ through the use of artificial backward Markov kernels $L_k(x_{k+1},x_k)$ as follows:
 
@@ -75,7 +75,7 @@ where the incremental weights are computed as
 w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}^{(i)})}{\gamma_{n-1}(x_{n-1}^{(i)}) K_n(x_{n-1}^{(i)}, x_n^{(i)})}
 \]
 
-$K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (2) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold, otherwise re-sample.
+$K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (2) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold, otherwise re-sample \cite{DelMoral2005}.
 
 \section*{Convergence Benchmarks}
 As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.\\
@@ -92,14 +92,14 @@ To avoid this we focused on sampling from a multimodal distribution that was int
 
 We focused on three metrics in assessing the performance:
 \begin{itemize}
-\item Average absolute error by number of particles. 
-\item Average absolute error by wall time. 
+\item Mean absolute error (MAE) by number of particles. 
+\item Mean absolute error (MAE) by wall time. 
 \item Number of particles until convergence to within 2\% of the true value. 
 \end{itemize}
 
 To understand the metrics, consider Figure \ref{convergence} which shows a typical run of the two samplers where we are trying to estimate the mean of the function shown in Figure \ref{function}. The absolute value is large for both samplers within the first 10 000 iterations and before converging to within 2\% of the true value. In this particular run, the SMC sampler converged far quicker than the MCMC sampler, but each run is quite sensitive to the random seeds used. To avoid this, we average the absolute error over 50 experiments. \\
 
-By considering the performance relative to the number particles, we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (we anneal the sample from an easy distribution to the hard one). To address this computational constraint, we also compare performance relative to average wall time. Again, we average the wall time over all 50 experiments to smooth minor variances over individual runs. \\
+By considering the performance relative to the number particles, we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (we anneal the sample from an easy distribution to the difficult one). To address this computational constraint, we also compare performance relative to average wall time. Again, we average the wall time over all 50 experiments to smooth minor variances over individual runs. \\
 
 
 \begin{figure}[htbp]
@@ -115,7 +115,7 @@ Finally, by considering average performance over 50 runs, we potentially miss po
 
 \section*{Results}
 
-\subsection*{Mean Absolute Error by number of particles. }
+\subsection*{MAE by number of particles}
 Figure \ref{ex} shows the average performance of MCMC and SMC Samplers in estimating the $E[x]$. The performance of both algorithms mostly levels off after 200 000 iterations, but SMC Samplers consistently show smaller average error when compared to MCMC. 
 
 
@@ -136,7 +136,7 @@ Figure \ref{ex} shows the average performance of MCMC and SMC Samplers in estima
 \end{figure}
 
 
-\subsection*{Mean Absolute Error by wall time. }
+\subsection*{MAE by wall time}
 
 While the results of Figure \ref{ex} and \ref{ex2} appear to favour SMC, the story is complicated when one takes wall-time into account. Each SMC sample is the result of $p$ steps of annealing (where $p=5$ in these experiments) and thus is on average approximately $p$ more expensive to compute. \\
 
@@ -219,10 +219,10 @@ While this result can partially inferred from the earlier accuracy results, it h
 
 
 \section*{Concluding Remarks}
-This paper has outlined the benchmarked comparison of MCMC and SMC smplers to evaluate a series of complex artificial density functions with varying dimensions. The purpose of this comparison is to identify which sampler outperforms the other in terms of computational feasibility and convergence error. It is clear from each experiment conducted, regardless of the dimensionality, that SMC saplers converge in remarkably less iterations and a lower mean absolute error than the MCMC sampler, as denoted in Figure \ref{convergence}. \\
+This paper has outlined the benchmarked comparison of MCMC and SMC smplers to evaluate a series of complex artificial density functions with varying dimensions. The purpose of this comparison is to identify which sampler outperforms the other in terms of computational feasibility and convergence error. It is clear from each experiment conducted, regardless of the dimensionality, that SMC saplers converge in remarkably less iterations and a lower MAE than the MCMC sampler, as denoted in Figure \ref{convergence}. \\
 
 \subsection*{Limitations}
-Despite the improved convergence results, the computational time to perform the SMC sampler is far greater than the typical MCMC approach. This may lead one to lean toward MCMC in higher dimensional space where computationally expensive experiments render the SMC sampler infeasible.
+Despite the improved convergence results, the computational time to perform the SMC sampler is far greater than the typical MCMC approach. This may lead one toward MCMC in higher dimensional space where computationally expensive experiments render the SMC sampler infeasible.
 
 \subsection*{Further Investigation}
 Due to time limitations of this paper, interesting areas relating to sampling of nonparametric Bayesian models were left unanswered. The growing interest in nonparametric Bayesian analysis has lead to increasing demands for high-performing samplers for posterior estimation, therefore providing an intriguing setting to benchmark the SMC and MCMC samplers. There is plentiful material outlining MCMC methodologies in various applied settings, but little investigation has been conducted with the much newer SMC smplers. Further areas of research into various applications may find SMC samplers to be highly valuable in scenarios where complex, multi-modal distributions pose a difficulty for the conventional MCMC.
@@ -233,6 +233,7 @@ Due to time limitations of this paper, interesting areas relating to sampling of
 \nocite{Bishop2007}
 \nocite{Murphy2012}
 \nocite{Lindsten2014}
+\nocite{Andrieu2003}
 \bibliographystyle{unsrt}
 \bibliography{refs}
 
