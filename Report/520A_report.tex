@@ -17,11 +17,11 @@
 \author{Jason Hartford - 81307143 \\ Dustin Johnson - 11338118}
 
 \begin{abstract}
-In this paper, we compare and contrast two major sampling methods for posterior inference, namely Markov Chain Monte Carlo (MCMC) and Sequential Monte Carlo (SMC) samplers based on their performance and efficiency under a series of models. The recent popularity of nonparametric Bayesian methods has demanded improvements in the efficiency and performance of sampling methods due to increased distributional complexity.  The purpose of the paper is to determine preference of one method over the other under a nonparametric Bayesian paradigm. The algorithms are implemented in the language Julia and benchmarked against other recent implementations.
+In this paper, we compare and contrast two major sampling methods for posterior inference, namely Markov Chain Monte Carlo (MCMC) and Sequential Monte Carlo (SMC) samplers based on their performance and efficiency under a series of artificial density functions. Increasing distributional complexity of Bayesian modeling has demanded improvements in the efficiency and performance of sampling methods.  The purpose of the paper is to determine preference of one method over the other through experiments on artificial density functions of varying dimensions. The algorithms are implemented and benchmarked in the language Julia, a rather new and emerging language with demonstrated potential for statistical computing.
 \end{abstract}
 
 \begin{keyword}
-MCMC \sep SMC Samplers \sep Nonparametric Bayesian \sep Julia
+MCMC \sep SMC Samplers \sep Bayesian Analysis \sep Julia
 \end{keyword}
 
 \end{frontmatter}
@@ -29,32 +29,22 @@ MCMC \sep SMC Samplers \sep Nonparametric Bayesian \sep Julia
 
 
 \section*{Introduction}
-Markov Chain Monte Carlo (MCMC) has become a favoured tool for Statisticians when sampling from complex distributions by constructing an ergodic Markov chain with an invariant distribution through, typically, Metropolis-Hasting (MH) steps. It is for this reason that MCMC has become the standard sampling technique that has enabled Bayesian statistics to evolve and be applied to increasingly complex and higher dimensional problems. However, MCMC has been shown to get stuck in local modes and difficulty arises when assessing whether the Markov chain has reached its stationary distribution. In addition, the full joint distribution must be evaluated each time a new variable is added, which is infeasible under a sequential context. \\
+Markov Chain Monte Carlo (MCMC) has become a favoured tool for Statisticians when sampling from complex distributions by constructing an ergodic Markov chain with an invariant distribution through, typically, Metropolis-Hasting (MH) steps. It is for this reason that MCMC has become the standard sampling technique that has enabled Bayesian statistics to evolve and be applied to increasingly complex and higher dimensional problems. However, MCMC has been shown to get stuck in local modes and difficulty arises when assessing whether the Markov chain has truly reached its stationary distribution. In addition, the full joint distribution must be evaluated each time a new variable is added, which is infeasible under a sequential context. \\
 
-Recent interest in nonparametric Bayesian models have increased the complexity of the posterior distributions, where multiple modes are common. This complexity has placed higher demands for improvements in sampling methods in terms of performance and computational efficiency. Sequential Monte Carlo (SMC) samplers offer an alternative to MCMC by offering the ability to sample from a posterior distribution through a novel online algorithm, as opposed to sampling from the entire joint distribution each time new observations enters the model.  Additionally, SMC samplers have been shown to cover multiple modes with improved efficiency due to the reweighing of particles after each iteration of the algorithm. \\
+Escalating interest in Bayesian modeling has increased the complexity of the posterior distributions, where multiple modes in high dimensional space are common. This complexity has placed higher demands for improvements in sampling methods in terms of performance and computational efficiency. Sequential Monte Carlo (SMC) samplers offer an alternative to MCMC by offering the ability to sample from a posterior distribution through a novel online algorithm, as opposed to sampling from the entire joint distribution each time new observations enters the model.  Additionally, SMC samplers have been shown to cover multiple modes with improved efficiency due to the reweighing of particles after each iteration of the algorithm. \\
 
-In the sections to follow, we will provide a brief outline the Bayesian approach, MCMC and SMC samplers, their properties, and then compare the two over a series of applications.
-
-\section*{The Bayesian Paradigm}
-
-Suppose we have a sample distribution or likelihood of the parameter $\theta$ on the data $\mathcal{L}(x|\theta)$ and some prior knowledge of $\theta$ given by some distribution $\pi(\theta)$. Using the Bayesian framework, we can construct a posterior distribution of the parameter $\theta$:
-
-\[ 
-\pi(\theta, x) = \frac{\mathcal{L}(x|\theta)\pi(\theta)}{\int \mathcal{L}(x|\theta)\pi(\theta)} \propto \mathcal{L}(x|\theta)\pi(\theta) \quad (1)
-\]
-
-Essentially, we are updating the prior distribution with the likelihood of $\theta$ given the data. As the convolution of these two distributions is going to be improper (not summing to 1), we incorporate the normalising constant in the denominator, which is not required in the MCMC approach as the distribution is proportional to the numerator. Typically, our posterior is highly complex, and it is required that we use a sampling algorithm to approximate its area and hence, come up with a value for its expectation and variance.
+In the sections to follow, we will provide a brief outline of MCMC and SMC samplers, then compare and contrast their performance under a series of experiments with artificial density functions of varying dimensions.
 
 \section*{Markov Chain Monte Carlo (MCMC)}
-MCMC accomplishes the task of approximating the area of the aforementioned posterior distribution by stepping through the space of the joint distribution provided in (1). MCMC samplers are ergodic Markov chains (irreducible and aperiodic) that have the target distribution as the invariant distribution.  We will focus on the most popular MCMC method, called the Metropolis-Hastings (MH) algorithm. Most other MCMC methods can be viewed as special cases of this algorithm. \\
+MCMC accomplishes the task of approximating the area of an unknown distribution by moving through the space of the joint distribution by a series of carefully taken steps. Each "chain" of steps is an MCMC sampler if they are ergodic Markov chains (irreducible and aperiodic) that have the target distribution as the invariant distribution.  We will focus on the most popular MCMC method, called the Metropolis-Hastings (MH) algorithm. Most other MCMC methods can be viewed as special cases of this algorithm (Andrieu, et al. 2003). \\
 
-Let $x'$ be the proposal candidate for the next step of the Markov chain, which is drawn from the proposal distribution denoted $q(x'|x)$. This proposal is then accepted as the next step in the Markov chain according to the probability $\alpha(x,x')$, where 
+Let $x'$ be the proposal candidate for the next step of the Markov chain, which is drawn from the proposal distribution denoted $q(x'|x)$, where $x$ is our current point. This proposal is then accepted as the next step in the Markov chain according to the probability $\alpha(x,x')$, where 
 
 \[
-\alpha(x,x') = \min{\left[1, \frac{\pi(x') q(x|x')}{\pi(x)q(x'|x)}\right]} \quad (2)
+\alpha(x,x') = \min{\left[1, \frac{\pi(x') q(x|x')}{\pi(x)q(x'|x)}\right]} \quad (1)
 \].
 
-If the proposal candidate is rejected, then the next sampled value is taken to be the current value. We iterate this process until some form of convergence is reached (see section on convergence benchmarking). Typically, the Markov chain takes a number of steps from the initial point before reasonably traversing the area and converging to the invariant distribution, so a sequence of the initial steps is discarded called the ``burn-in" period. It is important to note that the target density appears as a ratio in the probability $ \alpha(x,x')$ and therefore the algorithm can be implemented without the normalizing constant $Z = \int \mathcal{L}(x|\theta)\pi(\theta)$, denoted in (1).
+If the proposal candidate is rejected, then the next sampled value is taken to be the current value. We iterate this process until some form of convergence is reached (see section Convergence Benchmarks). Typically, a Markov chain takes a number of steps from the initial point before reasonably traversing the area and converging to the invariant distribution, so a sequence of the initial steps is discarded called the ``burn-in" period. It is important to note that the target density appears as a ratio in the probability $ \alpha(x,x')$ and therefore the algorithm can be implemented without the normalizing constant $Z = \int \mathcal{L}(x|\theta)\pi(\theta)$ inherent in a Bayesian framework.
 
 \section*{Sequential Monte Carlo (SMC) Samplers}
 The search for improved sampler performance and alternative methods to circumvent the downfalls of the MCMC approach has led to an alternative sampling method called the Sequential Monte Carlo (SMC) sampler. The SMC sampler requires no burn-in period, and can be computed parallel for computational efficiency, unlike the traditional MCMC method, making it well suited for Bayesian analysis. \\
@@ -74,7 +64,7 @@ where
 We are now able to use Importance Sampling (IS) without having to compute the importance distribution $\eta_n(x_n)$, and hence perform IS between the joint importance distribution $\eta_n(x_{1:n})$ and artificial joint target distribution $\tilde{\pi}_n$. Provided we have a set of weighted particles $\{W_{n-1}^{(i)}, X_{1:n-1}^{(i)}\}_{i=1}^N$ approximating $\tilde{\pi}_{n-1}$,
 
 \[
-W_n^{(i)} \propto \frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})} \propto w_n(x_{n-1}^{(i)}, x_n^{(i)})W_{n-1}^{(i)} \quad (3)
+W_n^{(i)} \propto \frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})} \propto w_n(x_{n-1}^{(i)}, x_n^{(i)})W_{n-1}^{(i)} \quad (2)
 \]
 
 where the incremental weights are computed as
@@ -83,16 +73,16 @@ where the incremental weights are computed as
 w_n(x_{n-1}^{(i)}, x_n^{(i)}) = \frac{\gamma_n^{(i)}L_{n}(x_{n-1}^{(i)}, x_{n-1}^{(i)})}{\gamma_{n-1}(x_{n-1}^{(i)}) K_n(x_{n-1}^{(i)}, x_n^{(i)})}
 \]
 
-$K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (3) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold.
+$K_n(x_{n-1}^{(i)}, x_n^{(i)})$ is a $\pi_n$ invariant Markov kernel. A common issue with SMC samplers is that the ratio $\frac{\tilde{\pi}_n(x_{1:n})}{\eta_n(x_{1:n})}$ in (2) increases with $n$, which causes the particle approximation to degenerate. Using a measure called the Effective Sample Size (ESS), we can impose a threshold, that if surpassed, activates a re-sample of the particles at that time. Altogether, for each $i = 1, \dots, N$ we sample $x_n^{(i)} \sim K_n(x_{n-1}^{(i)}, .)$, compute the weights $W_n^{(i)}$, normalise the weights $\tilde{W}_n^{(i)} = W_n^{(i)}[\sum_{j=1}^N W_n^{(j)}]^{-1}$, and continue for ESS less then some threshold, otherwise re-sample.
 
 \section*{Convergence Benchmarks}
-As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.
+As this paper is dedicated to the comparison of MCMC and SMC samplers, we need to identify some form of convergence to benchmark the two methods. Detection of convergence in sampling remains a difficult problem.  There are a variety of heuristics to test for non-convergence, such as examining the trace plots for ``choppy" performance that results from the sampler getting stuck in a local mode, or comparing the trace plots from over dispersed starting points to confirm that they converge to the same stationary distribution. However, this remains an inexact science.\\
 
-To avoid this we focused on sampling from a multimodal distribution that was integrable via symbolic integration techniques. This allowed us to compare the convergence of the two samplers to their true values. The one dimensional experiments used the function shown in Figure \ref{function}. It is an arbitrary mixture of gaussians, chosen because it is multimodal and integrable via symbolic integration.
+To avoid this we focused on sampling from a multimodal distribution that was integrable via symbolic integration techniques. This allowed us to compare the convergence of the two samplers to their true values. The one dimensional experiments used the function shown in Figure \ref{function}. It is an arbitrary mixture of Gaussian distributions, chosen because it is multimodal and integrable via symbolic integration.
 
 \begin{figure}[htbp]
 \begin{center}
-\includegraphics[width = \textwidth]{plots/function.pdf}
+\includegraphics[width = \textwidth]{plots/function.png}
 \caption{Distribution of interest}
 \label{function}
 \end{center}
@@ -105,9 +95,9 @@ We focused on three metrics in assessing the performance:
 \item Number of particles until convergence to within 2\% of the true value. 
 \end{itemize}
 
-To understand the metrics, consider Figure \ref{convergence} which shows a typical run of the two samplers where we are trying to estimate the mean of the function shown in Figure \ref{function}. The absolute is large for both samplers is large for the first 10 000 iterations and before converging to within 2\% of the true value. In this particular run, the SMC sampler converged far quicker than the MCMC sampler, but this is sensitive to the random seeds used. To avoid this, we average the absolute error over 50 experiments.
+To understand the metrics, consider Figure \ref{convergence} which shows a typical run of the two samplers where we are trying to estimate the mean of the function shown in Figure \ref{function}. The absolute value is large for both samplers within the first 10 000 iterations and before converging to within 2\% of the true value. In this particular run, the SMC sampler converged far quicker than the MCMC sampler, but each run is quite sensitive to the random seeds used. To avoid this, we average the absolute error over 50 experiments. \\
 
-By considering the performance relative to the number particles we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (because we anneal the sample from an easy distribution to the hard one). To address this, we compare performance relative to average wall time. Again we average the wall time over all 50 experiments to smooth minor variances between individual runs.
+By considering the performance relative to the number particles, we overstate the performance of the SMC Sampler because it takes far longer to generate the particles (we anneal the sample from an easy distribution to the hard one). To address this computational constraint, we compare performance relative to average wall time. Again, we average the wall time over all 50 experiments to smooth minor variances over individual runs. \\
 
 
 \begin{figure}[htbp]
@@ -118,7 +108,7 @@ By considering the performance relative to the number particles we overstate the
 \end{center}
 \end{figure}
 
-Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value many times within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations.
+Finally, by considering average performance over 50 runs, we potentially miss poor performing random draws. To understand tail performance, we consider the number of particles sampled before the chain stays within 2\% of the true value. In Figure  \ref{convergence}, for example, the MCMC estimate of the mean is within 2\% of the true value frequently within the first 1 000 iterations, but only stays within the bound for the remainder of the run after 226 887 iterations. In practice, it may be too expensive to run 50 experiments, so we would like to be confident that we have converged to the true value after a given number of iterations.
 
 %To evaluate how well MCMC defines the area of our posterior, we expect the chains to eventually converge to the stationary distribution, which would be the target distribution. To examine how well the MCMC chain has converged, we can examine how well is moves around the parameter space (mixing) through traceplots for each parameter, as well as through the running mean which plots the iterations against the mean of the draws up to each iteration. If there is poor convergence, the chain will demonstrate periods where it becomes stuck in areas of the parameter space which will show a choppy traceplot. With the running mean, we expect the mean to converge to a particular value after a series of iterations, otherwise convergence is considered poor.
 
