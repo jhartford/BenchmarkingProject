@@ -229,14 +229,17 @@ To test performance in higher dimensions we followed the same approach of buildi
 \[
 f(x_i) = \prod_i \sum_j w_{ij} \exp(-(x_i - \mu_{ij})^2/2s_{ij})
 \]
-where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. This allowed us to build multimodal functions in arbitrarily high dimensional spaces. However, in order integrate symbolically, we limited the experiments to two dimensions. 
+where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. This allowed us to build multimodal functions in arbitrarily high dimensional spaces. However, in order integrate symbolically and keep CPU manageable, we limited our experiments to two dimensions. 
 
+Figure \ref{multi_particles} plots the mean absolute error by the number of particles used. Here the annealing steps taken by the SMC Sampler show their utility. It achieves far lower error rates and consistently outperforms across the range of particles.
+
+This improved performance does come at the expense of longer wall time, but as Figure $\ref{multi_walltime}$ demonstrates, most of the error reduction is achieved in the first 0.2 seconds, and at every time step, the SMC Sampler outperforms MCMC on this example.
 
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{plots/2d-errors.png}
 \caption{Performance by number of particles of the two samplers in estimating $E[x_1^2 + x_2^2]$}
-\label{ex2}
+\label{multi_particles}
 \end{center}
 \end{figure}
 
@@ -244,7 +247,7 @@ where $w_ij$, $\mu_ij$ and $s_{ij}$ were sampled randomly with a fixed seed. Thi
 \begin{center}
 \includegraphics[width = \textwidth]{plots/2d-errors_walltime.png}
 \caption{Performance by number of particles of the two samplers in estimating $E[x_1^2 + x_2^2]$ by the average amount of time taken in seconds}
-\label{ex}
+\label{multi_walltime}
 \end{center}
 \end{figure}
 
