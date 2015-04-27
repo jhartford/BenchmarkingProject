@@ -8,6 +8,7 @@ println("Loaded Libraries")
 path = "/Users/jasonhartford/MediaFire/Documents/ComputerScience/UBC/520\ -\ All\ about\ that\ bayes/BenchmarkingProject/Report/plots"
 
 function f(x)
+  y = 0.0
   y = x[:,1].^2
   for i = 2:10
     y = y + x[:,i].^2
@@ -109,21 +110,12 @@ d = 5;
 n = 100000
 p(rand(10))
 
-a = ["a","b","c","d","e","f","g","h","i","j"]
-a[5]
-for i = 1:10
-  x = a[i]
-  print("\int_{-inf}^{inf} $x^2 + \n")
-  for j = 1:5
-    u = pars[i][1][j]
-    s = pars[i][2][j]
-    w = pars[i][3][j]
-    print(@sprintf("%1.3f*exp(-($x - %1.3f)^2/(2*%1.3f) + ",w,u,s))
-    #print("$w*exp(-($x - $u)^2/(2*$s) + ")
-  end
-  print("d$x \n")
-end
 ## Ground truth
+p_old(x alpha = 1.0) = (exp(-(x - 2).^2/2) +
+                       0.5*exp(-(x+2).^2/1) +
+                       0.5*exp(-(x-5).^2/1) +
+                       0.5*exp(-(x-15).^2/1)).^(alpha).*exp(-(x).^2/2).^(1-alpha);
+
 srand(1)
 p, pars = build_multi(10, 5)
 mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
@@ -136,10 +128,25 @@ fx = 301.349057745254;
 a = rand(5,10)
 p(a[1,:])
 
-include("SMCSampler.jl")
-smc_sampler(n) = smcsampler_multi(p, rand(10), N=n, p = 10, σ = 15.0);
-@time x = smc_sampler(int(1e6))
+#include("SMCSampler.jl")
+n = int(1e6)
+smc_sampler(n) = smcsampler_multi(p, rand(10), N=n, p = 5, σ = 15.0);
+mcmc_sampler(n) = mcmc_multi(p, rand(10), n = n, sig = 10);
+smc_x = zeros(Float64, 10, n, 10);
+mcmc_x = zeros(Float64, 10, n, 10);
+smc_time = zeros(Float64, 10);
+mcmc_time = zeros(Float64, 10);
+for i = 1:10
+  println(i)
+  tic()
+  smc_x[i, :, :] = smc_sampler(n);
+  smc_time[i] = toc()
+  tic()
+  mcmc_x[i, :, :] = mcmc_sampler(n);
+  mcmc_time[i] = toc()
+end
 f(x)
+
 # get mcmc samples
 tic()
 mcmc_stab, mcmc_errs = perform_experiment(mcmc_sampler, n_experiments, n, function_list, true_values, col_amount = 1);
