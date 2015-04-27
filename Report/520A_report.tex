@@ -114,8 +114,16 @@ Finally, by considering average performance over 50 runs, we potentially miss po
 
 
 \section*{Results}
+%<<<<<<< HEAD
 \subsection*{Average absolute error by number of particles. }
 Figure \ref{ex} shows the average performance of MCMC and SMC Samplers in estimating the $E[x]$. The performance of both algorithms mostly levels off after 200 000 iterations, but SMC Samplers consistently show smaller average error when compared to MCMC. 
+%=======
+%
+%\subsection*{MAE by number of particles}
+%Figure \ref{ex} shows the performance of MCMC and the SMC sampler in estimating the $E[x]$ by the mean absolute error (MAE) by number of particles. It is quite apparent that the SMC sampler shows the largest improvement in absolute error over MCMC when the number of particles initiated are below 600 000. With the number of particles above 600 000, errors of both samplers appear to be converging to one another where only a negligible improvement with the SMC sampler exists.
+%
+%
+%>>>>>>> adc9c218923d1b7332eb4a0a664cb2adf45e497a
 
 \begin{figure}[htbp]
 \begin{center}
@@ -135,7 +143,8 @@ The trend is accentuated when estimating $E[x^2]$ as is illustrated by Figure \r
 \end{center}
 \end{figure}
 
-\subsection*{Average absolute error by wall time. }
+\subsection*{MAE by wall time. }
+Figure \ref{default} 
 
 While the results of Figure \ref{ex} and \ref{ex2} appear to favour SMC, the story is complicated when one takes wall-time into account. Each SMC sample is the result of $p$ steps of annealing (where $p=5$ in these experiments) and thus is on average approximately $p$ more expensive to compute.
 
