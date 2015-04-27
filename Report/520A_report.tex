@@ -114,8 +114,12 @@ Finally, by considering average performance over 50 runs, we potentially miss po
 
 
 \section*{Results}
-\subsection*{Average absolute error by number of particles. }
-Figure \ref{ex} shows the performance MCMC and the SMC sampler in estimating the $E[x]$.
+
+\subsection*{Average absolute error by number of particles}
+Figure \ref{ex} shows the performance of MCMC and the SMC sampler in estimating the $E[x]$. It is quite apparent that the SMC sampler shows improvement in absolute error over MCMC when the number of particles initiated are below 600 000. With the number of particles above 600 000, errors of both samplers appear to be converging to one another where only a slight improvement with the SMC sampler.
+
+
+
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width = \textwidth]{plots/E_X.png}
