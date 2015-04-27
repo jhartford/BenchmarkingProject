@@ -18,7 +18,7 @@ function twod(x1, x2 = 1.0, alpha = 1.0)
     m2 = [2.0, -8.0, -5.0, 7.0]
     sd2 = [0.5, 1.5, 1.2, 0.3]
     w2 = [2.0, 0.5, 1.0, 0.5]
-    return (mix_gaussians(x1, m1, sd1, w1) .* mix_gaussians(x2*(x1/2), m2, sd2, w2)).^alpha .* (mix_gaussians(x1, m1, sd1, w1, 0.0)*mix_gaussians(x2, m1, sd1, w1, 0.0)).^(1-alpha)
+    return (mix_gaussians(x1, m1, sd1, w1) .* mix_gaussians(x2, m2, sd2, w2)).^alpha .* (mix_gaussians(x1, m1, sd1, w1, 0.0)*mix_gaussians(x2, m1, sd1, w1, 0.0)).^(1-alpha)
 end
 
 function surfplot(fx, x1lim, x2lim; alpha = 1.0, n = 400, figsize = [10, 10], filename = "3dplot.png", path = "/Users/jasonhartford/MediaFire/Documents/ComputerScience/UBC/520\ -\ All\ about\ that\ bayes/BenchmarkingProject/Report/plots")
@@ -55,11 +55,13 @@ function surfplot(fx, x1lim, x2lim; alpha = 1.0, n = 400, figsize = [10, 10], fi
   savefig("$path/$filename")
 end
 
+
+
 surfplot(twod, [-10, 10], [-10, 10], n = 400, figsize = [10, 5])
 
-for i = 0.0:0.1:1.0
+for i = 0.0:0.01:1.0
   println("Working on $i")
-  surfplot(twod, [-10, 10], [-10, 10], n = 400, figsize = [10, 5], alpha = i, filename =  @sprintf("Normalised-anealing-animation%0.2f.png", i))
+  surfplot(twod, [-10, 10], [-10, 10], n = 400, figsize = [10, 5], alpha = i, filename =  @sprintf("Normalised-Mix-Gaussian-anealing-animation%0.2f.png", i))
 end
 
 st = @sprintf("%0.2f", 3.1)
